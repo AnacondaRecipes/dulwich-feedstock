@@ -1,6 +1,6 @@
 {% set name = "dulwich" %}
-{% set version = "0.21.3" %}
-{% set sha256 = "7ca3b453d767eb83b3ec58f0cfcdc934875a341cdfdb0dc55c1431c96608cf83" %}
+{% set version = "0.22.7" %}
+{% set sha256 = "d53935832dd182d4c1415042187093efcee988af5cd397fb1f394f5bb27f0707" %}
 
 package:
   name: {{ name|lower }}
@@ -12,23 +12,23 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 1
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
-  skip: true  # [py<38]
+  number: 0
+  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --ignore-installed --no-cache-dir -vv
+  skip: true  # [py<39]
 
 requirements:
   build:
     - {{ compiler('c') }}
+    - {{ compiler('rust') }}
   host:
     - python
     - pip
-    - setuptools
+    - setuptools >=61.2
     - wheel
+    - setuptools-rust
   run:
     - python
     - urllib3 >=1.25
-  run_constrained:
-    - paramiko
 
 test:
   requires:
