@@ -38,7 +38,6 @@ test:
   imports:
     - dulwich
     - dulwich.tests
-    - dulwich.tests.compat
     - dulwich.tests.utils
     - dulwich.archive
     - dulwich.client
