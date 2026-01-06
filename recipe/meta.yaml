@@ -1,6 +1,6 @@
 {% set name = "dulwich" %}
-{% set version = "0.22.7" %}
-{% set sha256 = "d53935832dd182d4c1415042187093efcee988af5cd397fb1f394f5bb27f0707" %}
+{% set version = "0.25.0" %}
+{% set sha256 = "baa84b539fea0e6a925a9159c3e0a1d08cceeea5260732b84200e077444a4b0e" %}
 
 package:
   name: {{ name|lower }}
@@ -8,13 +8,13 @@ package:
 
 source:
   fn: {{ name }}-{{ version }}.tar.gz
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: {{ sha256 }}
 
 build:
   number: 0
   script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --ignore-installed --no-cache-dir -vv
-  skip: true  # [py<39]
+  skip: true  # [py<310]
   missing_dso_whitelist:  # [s390x]
     - $RPATH/ld64.so.1  # [s390x]
 
@@ -25,12 +25,13 @@ requirements:
   host:
     - python
     - pip
-    - setuptools >=61.2
-    - wheel
+    - setuptools >=77.0.0
     - setuptools-rust
+    - setuptools_rust
   run:
     - python
-    - urllib3 >=1.25
+    - urllib3 >=2.2.2
+    - typing_extensions >=4.6.0  # [py<312]
 
 test:
   requires:
