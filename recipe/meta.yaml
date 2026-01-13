@@ -9,6 +9,8 @@ source:
   fn: {{ name }}-{{ version }}.tar.gz
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: baa84b539fea0e6a925a9159c3e0a1d08cceeea5260732b84200e077444a4b0e
+  patches:
+    - find_testdata.patch
 
 build:
   number: 0
@@ -30,11 +32,31 @@ requirements:
     - urllib3 >=2.2.2
     - typing_extensions >=4.6.0  # [py<312]
 
+{% set ignore_tests = "" %}
+# upstream bug: ObjectFormat not imported in swift.py
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/contrib/test_swift.py" %}
+# upstream bug: ObjectFormat not imported in swift.py
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/contrib/test_swift_smoke.py" %}
+# source code compliance tests require source code in $SRC_DIR
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/test_source.py" %}
+# missing dependency - merge3
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/test_rerere.py" %}
+# TypeError: pack index v1 only supports SHA-1 names
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/test_sha256_pack.py::SHA256PackTests::test_pack_index_v1_with_sha256" %}
+
 test:
+  source_files:
+    - tests
+    - testdata
   requires:
     - pip
+    - pytest
+    - gevent
+    - geventhttpclient
+    - setuptools >=17.1
   commands:
     - pip check
+    - cd $SRC_DIR && pytest -vv tests {{ ignore_tests }}
   imports:
     - dulwich
     - dulwich.tests

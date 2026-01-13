@@ -1,0 +1,176 @@
+diff --git a/dulwich/tests/utils.py b/dulwich/tests/utils.py
+index 438bcc8..2bac59f 100644
+--- a/dulwich/tests/utils.py
++++ b/dulwich/tests/utils.py
+@@ -56,6 +56,18 @@ F = 0o100644  # Shorthand mode for Files.
+ T = TypeVar("T", bound=ShaFile)
+ 
+ 
++def _find_testdata_dir() -> str:
++    """Find the testdata directory, checking SRC_DIR first for conda builds."""
++    # Check if we're in a conda build environment and testdata is in source
++    src_dir = os.environ.get("SRC_DIR")
++    if src_dir:
++        testdata_dir = os.path.join(src_dir, "testdata")
++        if os.path.exists(testdata_dir):
++            return testdata_dir
++    # Fall back to relative path from installed package
++    return os.path.join(os.path.dirname(__file__), "..", "..", "testdata")
++
++
+ def open_repo(name: str, temp_dir: str | None = None) -> Repo:
+     """Open a copy of a repo in a temporary directory.
+ 
+@@ -72,8 +84,9 @@ def open_repo(name: str, temp_dir: str | None = None) -> Repo:
+     """
+     if temp_dir is None:
+         temp_dir = tempfile.mkdtemp()
++    testdata_dir = _find_testdata_dir()
+     repo_dir = os.path.join(
+-        os.path.dirname(__file__), "..", "..", "testdata", "repos", name
++        testdata_dir, "repos", name
+     )
+     temp_repo_dir = os.path.join(temp_dir, name)
+     shutil.copytree(repo_dir, temp_repo_dir, symlinks=True)
+diff --git a/tests/compat/utils.py b/tests/compat/utils.py
+index 91f2165..f36e757 100644
+--- a/tests/compat/utils.py
++++ b/tests/compat/utils.py
+@@ -39,8 +39,20 @@ from .. import SkipTest, TestCase
+ 
+ _DEFAULT_GIT = "git"
+ _VERSION_LEN = 4
++
++
++def _find_testdata_dir():
++    """Find the testdata directory, checking SRC_DIR first for conda builds."""
++    src_dir = os.environ.get("SRC_DIR")
++    if src_dir:
++        testdata_dir = os.path.join(src_dir, "testdata")
++        if os.path.exists(testdata_dir):
++            return testdata_dir
++    return os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "testdata")
++
++
+ _REPOS_DATA_DIR = os.path.abspath(
+-    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "testdata", "repos")
++    os.path.join(_find_testdata_dir(), "repos")
+ )
+ 
+ 
+diff --git a/tests/test_index.py b/tests/test_index.py
+index 09567ee..8b28235 100644
+--- a/tests/test_index.py
++++ b/tests/test_index.py
+@@ -91,8 +91,18 @@ def can_symlink() -> bool:
+     return True
+ 
+ 
++def _find_testdata_dir():
++    """Find the testdata directory, checking SRC_DIR first for conda builds."""
++    src_dir = os.environ.get("SRC_DIR")
++    if src_dir:
++        testdata_dir = os.path.join(src_dir, "testdata")
++        if os.path.exists(testdata_dir):
++            return testdata_dir
++    return os.path.join(os.path.dirname(__file__), "..", "testdata")
++
++
+ class IndexTestCase(TestCase):
+-    datadir = os.path.join(os.path.dirname(__file__), "../testdata/indexes")
++    datadir = os.path.join(_find_testdata_dir(), "indexes")
+ 
+     def get_simple_index(self, name):
+         return Index(os.path.join(self.datadir, name))
+diff --git a/tests/test_objects.py b/tests/test_objects.py
+index 8733e90..8a1f5d5 100644
+--- a/tests/test_objects.py
++++ b/tests/test_objects.py
+@@ -86,7 +86,16 @@ class BlobReadTests(TestCase):
+     """Test decompression of blobs."""
+ 
+     def get_sha_file(self, cls, base, sha):
+-        dir = os.path.join(os.path.dirname(__file__), "..", "testdata", base)
++        # Find testdata directory, checking SRC_DIR first for conda builds
++        src_dir = os.environ.get("SRC_DIR")
++        if src_dir:
++            testdata_dir = os.path.join(src_dir, "testdata")
++            if os.path.exists(testdata_dir):
++                dir = os.path.join(testdata_dir, base)
++            else:
++                dir = os.path.join(os.path.dirname(__file__), "..", "testdata", base)
++        else:
++            dir = os.path.join(os.path.dirname(__file__), "..", "testdata", base)
+         return cls.from_path(hex_to_filename(dir, sha))
+ 
+     def get_blob(self, sha):
+@@ -991,7 +1000,16 @@ class TreeTests(ShaFileCheckTests):
+         self.assertEqual(_SORTED_TREE_ITEMS, x.items())
+ 
+     def _do_test_parse_tree(self, parse_tree) -> None:
+-        dir = os.path.join(os.path.dirname(__file__), "..", "testdata", "trees")
++        # Find testdata directory, checking SRC_DIR first for conda builds
++        src_dir = os.environ.get("SRC_DIR")
++        if src_dir:
++            testdata_dir = os.path.join(src_dir, "testdata")
++            if os.path.exists(testdata_dir):
++                dir = os.path.join(testdata_dir, "trees")
++            else:
++                dir = os.path.join(os.path.dirname(__file__), "..", "testdata", "trees")
++        else:
++            dir = os.path.join(os.path.dirname(__file__), "..", "testdata", "trees")
+         o = Tree.from_path(hex_to_filename(dir, tree_sha))
+         self.assertEqual(
+             [(b"a", 0o100644, a_sha), (b"b", 0o100644, b_sha)],
+diff --git a/tests/test_pack.py b/tests/test_pack.py
+index 0920ced..b06d2cb 100644
+--- a/tests/test_pack.py
++++ b/tests/test_pack.py
+@@ -86,6 +86,16 @@ commit_sha = b"f18faa16531ac570a3fdc8c7ca16682548dafd12"
+ indexmode = "0o100644" if sys.platform != "win32" else "0o100666"
+ 
+ 
++def _find_testdata_dir():
++    """Find the testdata directory, checking SRC_DIR first for conda builds."""
++    src_dir = os.environ.get("SRC_DIR")
++    if src_dir:
++        testdata_dir = os.path.join(src_dir, "testdata")
++        if os.path.exists(testdata_dir):
++            return testdata_dir
++    return os.path.join(os.path.dirname(__file__), "..", "testdata")
++
++
+ class PackTests(TestCase):
+     """Base class for testing packs."""
+ 
+@@ -95,7 +105,7 @@ class PackTests(TestCase):
+         self.addCleanup(shutil.rmtree, self.tempdir)
+ 
+     datadir = os.path.abspath(
+-        os.path.join(os.path.dirname(__file__), "../testdata/packs")
++        os.path.join(_find_testdata_dir(), "packs")
+     )
+ 
+     def get_pack_index(self, sha):
+diff --git a/tests/test_repository.py b/tests/test_repository.py
+index 8942908..2a39fd0 100644
+--- a/tests/test_repository.py
++++ b/tests/test_repository.py
+@@ -569,7 +569,16 @@ class RepositoryRootTests(TestCase):
+     def test_clone_no_head(self) -> None:
+         temp_dir = self.mkdtemp()
+         self.addCleanup(shutil.rmtree, temp_dir)
+-        repo_dir = os.path.join(os.path.dirname(__file__), "..", "testdata", "repos")
++        # Find testdata directory, checking SRC_DIR first for conda builds
++        src_dir = os.environ.get("SRC_DIR")
++        if src_dir:
++            testdata_dir = os.path.join(src_dir, "testdata")
++            if os.path.exists(testdata_dir):
++                repo_dir = os.path.join(testdata_dir, "repos")
++            else:
++                repo_dir = os.path.join(os.path.dirname(__file__), "..", "testdata", "repos")
++        else:
++            repo_dir = os.path.join(os.path.dirname(__file__), "..", "testdata", "repos")
+         dest_dir = os.path.join(temp_dir, "a.git")
+         shutil.copytree(os.path.join(repo_dir, "a.git"), dest_dir, symlinks=True)
+         r = Repo(dest_dir)
