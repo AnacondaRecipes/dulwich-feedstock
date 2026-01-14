@@ -43,6 +43,8 @@ requirements:
 {% set ignore_tests = ignore_tests ~ " --ignore=tests/test_rerere.py" %}
 # TypeError: pack index v1 only supports SHA-1 names
 {% set ignore_tests = ignore_tests ~ " --deselect=tests/test_sha256_pack.py::SHA256PackTests::test_pack_index_v1_with_sha256" %}
+# Permission denied: '.git/hooks/pre-commit'
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/test_repository.py::RepositoryRootTests::test_shell_hook_pre_commit_add_files %}
 
 test:
   source_files:
