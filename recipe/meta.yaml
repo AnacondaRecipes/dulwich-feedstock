@@ -58,8 +58,8 @@ test:
     - setuptools >=17.1
   commands:
     - pip check
+    # Cannot test windows due to source location dependency
     - cd $SRC_DIR && pytest -vv tests {{ ignore_tests }}  # [not win]
-    - cd %SRC_DIR% && pytest -vv tests {{ ignore_tests }}  # [win]
   imports:
     - dulwich
     - dulwich.tests
