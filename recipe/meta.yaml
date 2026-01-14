@@ -58,7 +58,8 @@ test:
     - setuptools >=17.1
   commands:
     - pip check
-    - cd $SRC_DIR && pytest -vv tests {{ ignore_tests }}
+    - cd $SRC_DIR && pytest -vv tests {{ ignore_tests }}  # [not win]
+    - cd %SRC_DIR% && pytest -vv tests {{ ignore_tests }}  # [win]
   imports:
     - dulwich
     - dulwich.tests
