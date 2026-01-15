@@ -1,6 +1,5 @@
 {% set name = "dulwich" %}
-{% set version = "0.22.7" %}
-{% set sha256 = "d53935832dd182d4c1415042187093efcee988af5cd397fb1f394f5bb27f0707" %}
+{% set version = "0.25.2" %}
 
 package:
   name: {{ name|lower }}
@@ -8,35 +7,64 @@ package:
 
 source:
   fn: {{ name }}-{{ version }}.tar.gz
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: {{ sha256 }}
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: bca22c8aa4cbecbe8493b76e3fd6101513f09cf405cd9b92e116a48d9469e55a
+  patches:
+    - find_testdata.patch
 
 build:
   number: 0
   script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --ignore-installed --no-cache-dir -vv
-  skip: true  # [py<39]
-  missing_dso_whitelist:  # [s390x]
-    - $RPATH/ld64.so.1  # [s390x]
+  skip: true  # [py<310]
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('rust') }}
   host:
     - python
     - pip
-    - setuptools >=61.2
-    - wheel
+    - setuptools >=77.0.0
     - setuptools-rust
   run:
     - python
-    - urllib3 >=1.25
+    - urllib3 >=2.2.2
+    - typing_extensions >=4.6.0  # [py<312]
+
+{% set ignore_tests = "" %}
+# upstream bug: ObjectFormat not imported in swift.py
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/contrib/test_swift.py" %}
+# upstream bug: ObjectFormat not imported in swift.py
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/contrib/test_swift_smoke.py" %}
+# source code compliance tests require source code in $SRC_DIR
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/test_source.py" %}
+# missing dependency - merge3
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/test_rerere.py" %}
+# TypeError: pack index v1 only supports SHA-1 names
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/test_sha256_pack.py::SHA256PackTests::test_pack_index_v1_with_sha256" %}
+# Permission denied: '.git/hooks/pre-commit'
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/test_repository.py::RepositoryRootTests::test_shell_hook_pre_commit_add_files" %}
+# ConnectionRefusedError: [Errno 111] Connection refused
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/compat/test_partial_clone.py::PartialCloneClientTestCase::test_clone_with_filter" %}
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/compat/test_partial_clone.py::PartialCloneClientTestCase::test_fetch_with_blob_none_filter" %}
+# missing optional dependency - gpg
+{% set ignore_tests = ignore_tests ~ " --ignore=tests/test_signature.py" %}
 
 test:
+  source_files:
+    - tests
+    - testdata
   requires:
     - pip
+    - pytest
+    - gevent
+    - geventhttpclient
+    - setuptools >=17.1
   commands:
     - pip check
+    # Cannot test windows due to source location dependency
+    - cd $SRC_DIR && pytest -vv tests {{ ignore_tests }}  # [not win]
   imports:
     - dulwich
     - dulwich.tests
