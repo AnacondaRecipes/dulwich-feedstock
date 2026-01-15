@@ -45,6 +45,12 @@ requirements:
 {% set ignore_tests = ignore_tests ~ " --deselect=tests/test_sha256_pack.py::SHA256PackTests::test_pack_index_v1_with_sha256" %}
 # Permission denied: '.git/hooks/pre-commit'
 {% set ignore_tests = ignore_tests ~ " --deselect=tests/test_repository.py::RepositoryRootTests::test_shell_hook_pre_commit_add_files" %}
+# ConnectionRefusedError: [Errno 111] Connection refused
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/compat/test_partial_clone.py::PartialCloneClientTestCase::test_clone_with_filter" %}
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/compat/test_partial_clone.py::PartialCloneClientTestCase::test_fetch_with_blob_none_filter" %}
+# ssh-keygen returned non-zero exit status 1
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/test_signature.py::SSHCliSignatureVendorTests::test_default_key_command" %}
+{% set ignore_tests = ignore_tests ~ " --deselect=tests/test_signature.py::SSHCliSignatureVendorTests::test_sign_and_verify_with_ssh_key" %}
 
 test:
   source_files:
