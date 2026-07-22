@@ -1,16 +1,15 @@
 {% set name = "dulwich" %}
-{% set version = "0.25.2" %}
+{% set version = "1.2.12" %}
 
 package:
-  name: {{ name|lower }}
+  name: {{ name }}
   version: {{ version }}
 
 source:
-  fn: {{ name }}-{{ version }}.tar.gz
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: bca22c8aa4cbecbe8493b76e3fd6101513f09cf405cd9b92e116a48d9469e55a
-  patches:
-    - find_testdata.patch
+  sha256: 1278d8ddb0a92fa4bc9f2e9b14edf0a2e140248bccc4c7c9752a1390e2ab4c64
+  #patches:
+  #  - find_testdata.patch
 
 build:
   number: 0
@@ -23,14 +22,20 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('rust') }}
   host:
-    - python
     - pip
+    - python
     - setuptools >=77.0.0
     - setuptools-rust
   run:
     - python
     - urllib3 >=2.2.2
     - typing_extensions >=4.6.0  # [py<312]
+  run_constrained:
+    # https
+    - urllib3 >=2.2.2
+    # hypothesis
+    - hypothesis >=6
+
 
 {% set ignore_tests = "" %}
 # upstream bug: ObjectFormat not imported in swift.py
@@ -92,7 +97,7 @@ test:
     - dulwich.web
 
 about:
-  home: https://www.dulwich.io/
+  home: https://www.dulwich.io
   license: Apache-2.0
   license_family: Apache
   license_file: COPYING
@@ -101,7 +106,7 @@ about:
     Python implementation of the Git file formats and protocols, without the need to have git installed.
     All functionality is available in pure Python. Optional C extensions can be built for improved performance.
     The project is named after the part of London that Mr. and Mrs. Git live in in the particular Monty Python sketch.
-  doc_url: https://www.dulwich.io/docs/
+  doc_url: https://www.dulwich.io/docs
   dev_url: https://github.com/jelmer/dulwich
 
 extra:
