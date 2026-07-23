@@ -31,8 +31,6 @@ requirements:
     - urllib3 >=2.2.2
     - typing_extensions >=4.6.0  # [py<312]
   run_constrained:
-    # https
-    - urllib3 >=2.2.2
     # hypothesis
     - hypothesis >=6
 
@@ -110,7 +108,7 @@ about:
     Python implementation of the Git file formats and protocols, without the need to have git installed.
     All functionality is available in pure Python. Optional C extensions can be built for improved performance.
     The project is named after the part of London that Mr. and Mrs. Git live in in the particular Monty Python sketch.
-  doc_url: https://www.dulwich.io/docs
+  doc_url: https://dulwich.readthedocs.io
   dev_url: https://github.com/jelmer/dulwich
 
 extra:
